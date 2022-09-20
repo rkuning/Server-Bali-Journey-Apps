@@ -1,11 +1,7 @@
 const adminRoute = require("express").Router();
-const { valAdmin } = require("../../middlewares/valAdmin");
-const categoryRoutes = require("./category");
+const categoryRoutes = require("./categoryRoute");
 
-adminRoute.get("/", valAdmin, (req, res) =>
-  res.json({ message: "Home Page dashboard admin" })
-);
-
-adminRoute.use("/categories", valAdmin, categoryRoutes);
+adminRoute.get("/", (req, res) => res.json({ message: "Home Page dashboard admin" }));
+adminRoute.use("/categories", categoryRoutes);
 
 module.exports = adminRoute;
