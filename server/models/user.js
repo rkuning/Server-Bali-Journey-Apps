@@ -1,7 +1,6 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+"use strict";
+const { encryptPass } = require("../helpers/bcrypt");
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class user extends Model {
     /**
@@ -13,15 +12,39 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  user.init({
-    name: DataTypes.STRING,
-    email: DataTypes.STRING,
-    level: DataTypes.STRING,
-    status: DataTypes.STRING,
-    password: DataTypes.STRING
-  }, {
-    sequelize,
-    modelName: 'user',
-  });
+  user.init(
+    {
+      name: {
+        type: DataTypes.STRING,
+        validate: {
+          notEmpty: {
+            message: "Name must not be empty!",
+          },
+        },
+      },
+      email: {
+        type: DataTypes.STRING,
+        validate: {
+          notEmpty: {
+            message: "Email must not be empty!",
+          },
+        },
+      },
+      level: DataTypes.STRING,
+      status: DataTypes.STRING,
+      password: DataTypes.STRING,
+    },
+    {
+      hooks: {
+        beforeCreate: function (user, options) {
+          user.password = encryptPass(user.password);
+          user.level = user.level || "user";
+          user.status = user.status || "active";
+        },
+      },
+      sequelize,
+      modelName: "user",
+    }
+  );
   return user;
 };

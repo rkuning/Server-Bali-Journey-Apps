@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt");
-const saltRound = process.env.SALT_ROUND;
+const saltRound = process.env.SALT_ROUND || 5;
 
 const encryptPass = (password) => {
   return bcrypt.hashSync(String(password), +saltRound);

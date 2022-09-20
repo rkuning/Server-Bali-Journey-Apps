@@ -1,7 +1,8 @@
 const homeRoute = require("express").Router();
+const { HomeController } = require("../../controllers");
 
 homeRoute.get("/", (req, res) => res.json("homepage"));
-homeRoute.post("/login", (req, res) => res.json("login page"));
-homeRoute.post("/register", (req, res) => res.json("register page"));
+homeRoute.post("/login", HomeController.login);
+homeRoute.post("/register", HomeController.register);
 
 module.exports = homeRoute;
