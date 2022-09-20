@@ -1,5 +1,6 @@
 const { user } = require("../../models");
 const { decryptPass } = require("../../helpers/bcrypt");
+const { tokenGenerator } = require("../../helpers/jsonwebtoken");
 
 class HomeController {
   static async login(req, res) {
@@ -11,7 +12,11 @@ class HomeController {
 
       if (emailFound) {
         if (decryptPass(password, emailFound.password)) {
-          res.status(200).json(emailFound);
+          let accessToken = tokenGenerator(emailFound);
+          //   console.log(accessToken);
+          res.status(200).json({
+            accessToken,
+          });
         } else {
           res.status(403).json({
             massage: "Invalid password!",
