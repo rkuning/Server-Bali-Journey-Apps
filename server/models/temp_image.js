@@ -34,6 +34,14 @@ module.exports = (sequelize, DataTypes) => {
       img: DataTypes.STRING,
     },
     {
+      hooks: {
+        beforeCreate: (temp_image, options) => {
+          temp_image.userId = temp_image.userId || null;
+          temp_image.destinationId = temp_image.destinationId || null;
+          temp_image.package_tripId = temp_image.package_tripId || null;
+          temp_image.reviewId = temp_image.reviewId || null;
+        },
+      },
       sequelize,
       modelName: "temp_image",
     }

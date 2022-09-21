@@ -6,9 +6,7 @@ const reviewRoutes = require("./reviewRoute");
 const tempImageRoutes = require("./tempImageRoute");
 const packageTripRoutes = require("./packageTripRoute.js");
 
-adminRoute.get("/", (req, res) =>
-  res.json({ message: "Home Page dashboard admin" })
-);
+adminRoute.get("/", (req, res) => res.json({ message: "Home Page dashboard admin" }));
 adminRoute.use("/categories", categoryRoutes);
 adminRoute.use("/destinations", destinationRoutes);
 adminRoute.use("/users", userRoutes);

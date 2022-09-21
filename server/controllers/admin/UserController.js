@@ -1,9 +1,9 @@
-const { user } = require("../../models");
+const { user, temp_image } = require("../../models");
 
 class UserController {
   static async getUser(req, res) {
     try {
-      let users = await user.findAll();
+      let users = await temp_image.findAll({ attributes: ["id", "userId", "img"], include: [user] });
       res.status(200).json(users);
     } catch (err) {
       res.status(500).json(err);
@@ -13,10 +13,12 @@ class UserController {
   static async getUserId(req, res) {
     try {
       const id = +req.params.id;
-      let getUser = await user.findByPk(id);
-      getUser
-        ? res.status(200).json(getUser)
-        : res.status(404).json({ message: `Not found` });
+      let getUser = await temp_image.findOne({
+        attributes: ["id", "userId", "img"],
+        where: { userId: id },
+        include: [user],
+      });
+      getUser ? res.status(200).json(getUser) : res.status(404).json({ message: `Not found` });
     } catch (err) {
       res.status(500).json(err);
     }
@@ -29,6 +31,7 @@ class UserController {
         res.status(200).json({ msg: `Email sudah terdaftar!` });
       } else {
         const addUser = await user.create({ name, email, password });
+        await temp_image.create({ userId: addUser.id, img: "images/default-profil.jpg" });
         res.status(201).json(addUser);
       }
     } catch (err) {
@@ -39,9 +42,7 @@ class UserController {
     try {
       const id = +req.params.id;
       const delUser = await user.destroy({ where: { id } });
-      delUser === 1
-        ? res.status(200).json(`User with id ${id} Deleted!`)
-        : res.status(404).json("User Not found!");
+      delUser === 1 ? res.status(200).json(`User with id ${id} Deleted!`) : res.status(404).json("User Not found!");
     } catch (err) {
       res.status(500).json(err);
     }

@@ -50,6 +50,11 @@ module.exports = (sequelize, DataTypes) => {
       map_link: DataTypes.STRING,
     },
     {
+      hooks: {
+        beforeCreate: (destination, options) => {
+          destination.rating = 0;
+        },
+      },
       sequelize,
       modelName: "destination",
     }

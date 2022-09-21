@@ -20,8 +20,7 @@ class ReviewController {
   }
   static async addReview(req, res) {
     try {
-      const { comment, rating, userId, destinationId, package_tripId } =
-        req.body;
+      const { comment, rating, userId, destinationId, package_tripId } = req.body;
       let result = await review.create({
         comment,
         rating,
@@ -39,9 +38,7 @@ class ReviewController {
       const { id } = req.params;
       const result = await review.destroy({ where: { id } });
       if (result !== 0) {
-        res
-          .status(200)
-          .json({ message: `Review with id ${id} has been deleted` });
+        res.status(200).json({ message: `Review with id ${id} has been deleted` });
       } else {
         res.status(404).json({ message: `Review can't be deleted` });
       }
@@ -52,8 +49,7 @@ class ReviewController {
   static async updateReview(req, res) {
     try {
       const { id } = req.params;
-      const { comment, rating, userId, destinationId, package_tripId } =
-        req.body;
+      const { comment, rating, userId, destinationId, package_tripId } = req.body;
       const result = await review.update(
         {
           comment,
@@ -67,9 +63,7 @@ class ReviewController {
       );
 
       if (result[0] !== 0) {
-        res
-          .status(200)
-          .json({ message: `Review with id ${id} has been updated` });
+        res.status(200).json({ message: `Review with id ${id} has been updated` });
       } else {
         res.status(404).json({ message: `Review can't be updated` });
       }

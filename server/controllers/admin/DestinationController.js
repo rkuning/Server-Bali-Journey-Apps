@@ -2,12 +2,35 @@ const { destination, category, temp_image } = require("../../models");
 class DestinationController {
   static async getDestination(req, res) {
     try {
-      let result = await destination
-        .findAll
-        //     {
-        //     include: [category, temp_image],
-        //   }
-        ();
+      let images = [];
+      let result = [];
+
+      let destinations = await destination.findAll({
+        attributes: { exclude: ["createdAt", "updatedAt"] },
+        include: [category],
+      });
+
+      for (let i in destinations) {
+        const { id, name, categoryId, rating, description, address, open_day, open_time, map_link, category } =
+          destinations[i];
+        let destinationId = destinations[i].id;
+        images = await temp_image.findAll({ where: { destinationId } });
+        let data = {
+          id,
+          name,
+          categoryId,
+          rating,
+          description,
+          address,
+          open_day,
+          open_time,
+          map_link,
+          category,
+          images,
+        };
+        result.push(data);
+      }
+
       res.status(200).json(result);
     } catch (err) {
       res.status(500).json(err);
@@ -28,40 +51,26 @@ class DestinationController {
       //       return tempImg.push(img);
       //     }
       //   });
-      resWisata
-        ? res.status(200).json({ resWisata })
-        : res.status(404).json(`Not found!`);
+      resWisata ? res.status(200).json({ resWisata }) : res.status(404).json(`Not found!`);
     } catch (err) {
       res.status(500).json(err);
     }
   }
   static async addDestination(req, res) {
     try {
-      const {
+      const { name, categoryId, description, address, open_day, open_time, map_link } = req.body;
+      const img = req.file.path;
+      let addDestination = await destination.create({
         name,
         categoryId,
-        rating,
-        description,
-        address,
-        open_day,
-        open_time,
-        map_link,
-      } = req.body;
-      let addWisata = await destination.create({
-        name,
-        categoryId,
-        rating,
         description,
         address,
         open_day,
         open_time,
         map_link,
       });
-      //   await image.create({
-      //     wisataId: addWisata.id,
-      //     image: "assets/default.jpeg",
-      //   });
-      res.status(201).json(addWisata);
+      await temp_image.create({ destinationId: addDestination.id, img });
+      res.status(201).json(addDestination);
     } catch (err) {
       res.status(500).json(err);
     }
@@ -71,9 +80,7 @@ class DestinationController {
       const { id } = req.params;
       const result = await destination.destroy({ where: { id } });
       if (result !== 0) {
-        res
-          .status(200)
-          .json({ message: `Destination with id ${id} has been deleted` });
+        res.status(200).json({ message: `Destination with id ${id} has been deleted` });
       } else {
         res.status(404).json({ message: `Destination can't be deleted` });
       }
@@ -84,16 +91,7 @@ class DestinationController {
   static async updateDestination(req, res) {
     try {
       const { id } = req.params;
-      const {
-        name,
-        categoryId,
-        rating,
-        description,
-        address,
-        open_day,
-        open_time,
-        map_link,
-      } = req.body;
+      const { name, categoryId, rating, description, address, open_day, open_time, map_link } = req.body;
       const result = await destination.update(
         {
           name,
@@ -108,9 +106,7 @@ class DestinationController {
         { where: { id } }
       );
       if (result[0] !== 0) {
-        res
-          .status(200)
-          .json({ message: `Destination with id ${id} has been updated` });
+        res.status(200).json({ message: `Destination with id ${id} has been updated` });
       } else {
         res.status(404).json({ message: `Destination can't be updated` });
       }
