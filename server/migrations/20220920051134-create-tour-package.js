@@ -10,9 +10,21 @@ module.exports = {
       },
       package_tripId: {
         type: Sequelize.INTEGER,
+        references: {
+          model: "package_trips",
+          key: "id",
+        },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
       },
       destinationId: {
         type: Sequelize.INTEGER,
+        references: {
+          model: "destinations",
+          key: "id",
+        },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
       },
       createdAt: {
         allowNull: false,

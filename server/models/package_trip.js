@@ -1,7 +1,5 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class package_trip extends Model {
     /**
@@ -11,16 +9,41 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+
+      // ? asosiasi key ke table lain
+      package_trip.hasMany(models.temp_image, {
+        foreignKey: "package_tripId",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      });
+      package_trip.hasMany(models.review, {
+        foreignKey: "package_tripId",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      });
+      package_trip.hasMany(models.wishlist, {
+        foreignKey: "package_tripId",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      });
+      package_trip.hasMany(models.tour_package, {
+        foreignKey: "package_tripId",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      });
     }
   }
-  package_trip.init({
-    name: DataTypes.STRING,
-    description: DataTypes.TEXT,
-    price: DataTypes.BIGINT,
-    rating: DataTypes.FLOAT
-  }, {
-    sequelize,
-    modelName: 'package_trip',
-  });
+  package_trip.init(
+    {
+      name: DataTypes.STRING,
+      description: DataTypes.TEXT,
+      price: DataTypes.BIGINT,
+      rating: DataTypes.FLOAT,
+    },
+    {
+      sequelize,
+      modelName: "package_trip",
+    }
+  );
   return package_trip;
 };

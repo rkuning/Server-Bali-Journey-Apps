@@ -1,7 +1,5 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class destination extends Model {
     /**
@@ -11,20 +9,50 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+
+      // ? asosiasi key ke table lain
+      destination.hasMany(models.review, {
+        foreignKey: "destinationId",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      });
+      destination.hasMany(models.wishlist, {
+        foreignKey: "destinationId",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      });
+      destination.hasMany(models.temp_image, {
+        foreignKey: "destinationId",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      });
+      destination.hasMany(models.tour_package, {
+        foreignKey: "destinationId",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      });
+
+      // ? asosiasi primary key dari tabel lain
+      destination.belongsTo(models.category, {
+        foreignKey: "categoryId",
+      });
     }
   }
-  destination.init({
-    name: DataTypes.STRING,
-    categoryId: DataTypes.INTEGER,
-    rating: DataTypes.FLOAT,
-    description: DataTypes.TEXT,
-    address: DataTypes.STRING,
-    open_day: DataTypes.STRING,
-    open_time: DataTypes.STRING,
-    map_link: DataTypes.STRING
-  }, {
-    sequelize,
-    modelName: 'destination',
-  });
+  destination.init(
+    {
+      name: DataTypes.STRING,
+      categoryId: DataTypes.INTEGER,
+      rating: DataTypes.FLOAT,
+      description: DataTypes.TEXT,
+      address: DataTypes.STRING,
+      open_day: DataTypes.STRING,
+      open_time: DataTypes.STRING,
+      map_link: DataTypes.STRING,
+    },
+    {
+      sequelize,
+      modelName: "destination",
+    }
+  );
   return destination;
 };
