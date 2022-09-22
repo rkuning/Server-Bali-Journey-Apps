@@ -38,6 +38,12 @@ module.exports = (sequelize, DataTypes) => {
       package_tripId: DataTypes.INTEGER,
     },
     {
+      hooks: {
+        beforeCreate: (review, options) => {
+          review.destinationId = review.destinationId || null;
+          review.package_tripId = review.package_tripId || null;
+        },
+      },
       sequelize,
       modelName: "review",
     }
