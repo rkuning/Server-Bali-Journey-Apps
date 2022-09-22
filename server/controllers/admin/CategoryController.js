@@ -12,7 +12,7 @@ class CategoryController {
   static async getCategoryId(req, res) {
     try {
       const { id } = req.params;
-      const result = await category.findOne({ attributes: { exclude: ["createdAt", "updatedAt"], where: { id } } });
+      const result = await category.findOne({ attributes: { exclude: ["createdAt", "updatedAt"] }, where: { id } });
       res.status(200).json(result);
     } catch (err) {
       res.status(500).json(err);

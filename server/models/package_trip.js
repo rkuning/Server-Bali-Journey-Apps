@@ -41,6 +41,11 @@ module.exports = (sequelize, DataTypes) => {
       rating: DataTypes.FLOAT,
     },
     {
+      hooks: {
+        beforeCreate: (package_trip, options) => {
+          package_trip.rating = 0;
+        },
+      },
       sequelize,
       modelName: "package_trip",
     }

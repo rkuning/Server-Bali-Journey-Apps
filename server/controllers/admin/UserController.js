@@ -3,8 +3,13 @@ const { user, temp_image } = require("../../models");
 class UserController {
   static async getUser(req, res) {
     try {
-      let users = await temp_image.findAll({ attributes: ["id", "userId", "img"], include: [user] });
-      res.status(200).json(users);
+      let users = await user.findAll({ attributes: { exclude: ["createdAt", "updatedAt"] }, where: { status: "active" } });
+      let data = [];
+      for (let i in users) {
+        let image = await temp_image.findOne({ where: { userId: users[i].id } });
+        data.push({ ...users[i].dataValues, img: image.img });
+      }
+      res.status(200).json(data);
     } catch (err) {
       res.status(500).json(err);
     }
@@ -13,12 +18,17 @@ class UserController {
   static async getUserId(req, res) {
     try {
       const id = +req.params.id;
-      let getUser = await temp_image.findOne({
-        attributes: ["id", "userId", "img"],
-        where: { userId: id },
-        include: [user],
+      let getUser = await user.findOne({
+        attributes: { exclude: ["createdAt", "updatedAt"] },
+        where: { id },
       });
-      getUser ? res.status(200).json(getUser) : res.status(404).json({ message: `Not found` });
+      if (getUser) {
+        let image = await temp_image.findOne({ where: { userId: getUser.id } });
+        let data = { ...getUser.dataValues, img: image.img };
+        res.status(200).json(data);
+      } else {
+        res.status(404).json({ msg: `Not found` });
+      }
     } catch (err) {
       res.status(500).json(err);
     }
@@ -42,7 +52,7 @@ class UserController {
     try {
       const id = +req.params.id;
       const delUser = await user.destroy({ where: { id } });
-      delUser === 1 ? res.status(200).json(`User with id ${id} Deleted!`) : res.status(404).json("User Not found!");
+      delUser === 1 ? res.status(200).json(`User with id ${id} Deleted!`) : res.status(404).json({ msg: "User Not found!" });
     } catch (err) {
       res.status(500).json(err);
     }

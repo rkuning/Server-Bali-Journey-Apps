@@ -2,7 +2,6 @@ const { destination, category, temp_image } = require("../../models");
 class DestinationController {
   static async getDestination(req, res) {
     try {
-      let images = [];
       let result = [];
 
       let destinations = await destination.findAll({
@@ -14,7 +13,7 @@ class DestinationController {
         const { id, name, categoryId, rating, description, address, open_day, open_time, map_link, category } =
           destinations[i];
         let destinationId = destinations[i].id;
-        images = await temp_image.findAll({ where: { destinationId } });
+        let images = await temp_image.findAll({ attributes: ["id", "destinationId", "img"], where: { destinationId } });
         let data = {
           id,
           name,
@@ -39,19 +38,20 @@ class DestinationController {
   static async getDestinationId(req, res) {
     try {
       const { id } = req.params;
-      const resWisata = await destination.findOne({
-        // include: [category],
+      let dataDestination = await destination.findOne({
+        include: [category],
         where: { id },
       });
-      //   let resImage = await temp_image.findAll({ where: { wisataId: id } });
-      //   let tempImg = [];
-      //   resImage.forEach((img) => {
-      //     const { id, wistataId, image } = img;
-      //     if (image !== "assets/default.jpeg") {
-      //       return tempImg.push(img);
-      //     }
-      //   });
-      resWisata ? res.status(200).json({ resWisata }) : res.status(404).json(`Not found!`);
+      if (dataDestination) {
+        let images = await temp_image.findAll({
+          attributes: ["id", "destinationId", "img"],
+          where: { destinationId: dataDestination.id },
+        });
+        let data = { ...dataDestination.dataValues, images };
+        res.status(200).json(data);
+      } else {
+        res.status(404).json({ msg: `Not found` });
+      }
     } catch (err) {
       res.status(500).json(err);
     }
@@ -91,12 +91,11 @@ class DestinationController {
   static async updateDestination(req, res) {
     try {
       const { id } = req.params;
-      const { name, categoryId, rating, description, address, open_day, open_time, map_link } = req.body;
+      const { name, categoryId, description, address, open_day, open_time, map_link } = req.body;
       const result = await destination.update(
         {
           name,
           categoryId,
-          rating,
           description,
           address,
           open_day,
