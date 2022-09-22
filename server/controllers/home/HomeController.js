@@ -1,4 +1,12 @@
-const { user, temp_image } = require("../../models");
+const {
+  user,
+  temp_image,
+  category,
+  destination,
+  package_trip,
+  tour_packages,
+  review,
+} = require("../../models");
 const { decryptPass } = require("../../helpers/bcrypt");
 const { tokenGenerator } = require("../../helpers/jsonwebtoken");
 
@@ -21,7 +29,9 @@ class HomeController {
               res.status(307).json({ msg: "Cannot reach this account!" });
               break;
             case "blocked":
-              res.status(308).json({ msg: "Your account is temporary blocked, contact CS!" });
+              res.status(308).json({
+                msg: "Your account is temporary blocked, contact CS!",
+              });
               break;
           }
         } else {
@@ -46,9 +56,238 @@ class HomeController {
         res.status(200).json({ msg: `Email sudah terdaftar!` });
       } else {
         const addUser = await user.create({ name, email, password });
-        await temp_image.create({ userId: addUser.id, img: "images/default-profil.jpg" });
+        await temp_image.create({
+          userId: addUser.id,
+          img: "images/default-profil.jpg",
+        });
         res.status(201).json(addUser);
       }
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+  static async category(req, res) {
+    try {
+      let result = await category.findAll({
+        attributes: { exclude: ["createdAt", "updatedAt"] },
+      });
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+  static async categoryId(req, res) {
+    try {
+      const { id } = req.params;
+      const result = await category.findOne({
+        attributes: { exclude: ["createdAt", "updatedAt"], where: { id } },
+      });
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+  static async allDestinations(req, res) {
+    try {
+      let images = [];
+      let result = [];
+
+      let destinations = await destination.findAll({
+        attributes: { exclude: ["createdAt", "updatedAt"] },
+        include: [category],
+      });
+
+      for (let i in destinations) {
+        const {
+          id,
+          name,
+          categoryId,
+          rating,
+          description,
+          address,
+          open_day,
+          open_time,
+          map_link,
+          category,
+        } = destinations[i];
+        let destinationId = destinations[i].id;
+        images = await temp_image.findAll({
+          where: { destinationId: destinationId },
+        });
+        let data = {
+          id,
+          name,
+          categoryId,
+          rating,
+          description,
+          address,
+          open_day,
+          open_time,
+          map_link,
+          category,
+          images,
+        };
+        result.push(data);
+      }
+
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+  static async allPackageTrip(req, res) {
+    try {
+      let images = [];
+      let result = [];
+
+      let packageTrips = await package_trip.findAll({
+        attributes: { exclude: ["createdAt", "updatedAt"] },
+      });
+
+      for (let i in packageTrips) {
+        const { name, description, price, rating } = packageTrips[i];
+        let package_tripId = packageTrips[i].id;
+        images = await temp_image.findAll({ where: { package_tripId } });
+        let tourPackages = await tour_packages.findAll({
+          where: { package_tripId },
+          include: [destination],
+        });
+        let data = {
+          name,
+          description,
+          price,
+          rating,
+          images,
+          tourPackages,
+        };
+        result.push(data);
+      }
+
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+  static async destinationId(req, res) {
+    try {
+      const { id } = req.params;
+      let dataDestination = await destination.findOne({
+        include: [category],
+        where: { id },
+      });
+      if (dataDestination) {
+        let images = await temp_image.findAll({
+          attributes: ["id", "destinationId", "img"],
+          where: { destinationId: dataDestination.id },
+        });
+        let data = { ...dataDestination.dataValues, images };
+        res.status(200).json(data);
+      } else {
+        res.status(404).json({ msg: `Not found` });
+      }
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+  static async packageTripId(req, res) {
+    try {
+      const { id } = req.params;
+      let dataPackageTrip = await package_trip.findOne({
+        where: { id },
+      });
+      if (dataPackageTrip) {
+        let images = await temp_image.findAll({
+          attributes: ["id", "package_tripId", "img"],
+          where: { package_tripId: dataPackageTrip.id },
+        });
+        let data = { ...dataPackageTrip.dataValues, images };
+        res.status(200).json(data);
+      } else {
+        res.status(404).json({ msg: `Not found!` });
+      }
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+  static async recomenDestinations(req, res) {
+    try {
+      let images = [];
+      let result = [];
+
+      let destinations = await destination.findAll({
+        // where: { rating: 5 }, ini belum bisa
+        attributes: { exclude: ["createdAt", "updatedAt"] },
+        include: [category],
+      });
+
+      for (let i in destinations) {
+        const {
+          id,
+          name,
+          categoryId,
+          rating,
+          description,
+          address,
+          open_day,
+          open_time,
+          map_link,
+          category,
+        } = destinations[i];
+        let destinationId = destinations[i].id;
+        images = await temp_image.findAll({
+          where: { destinationId: destinationId },
+        });
+        let data = {
+          id,
+          name,
+          categoryId,
+          rating,
+          description,
+          address,
+          open_day,
+          open_time,
+          map_link,
+          category,
+          images,
+        };
+        result.push(data);
+      }
+
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+  static async recomenPackageTrips(req, res) {
+    try {
+      let images = [];
+      let result = [];
+
+      let packageTrips = await package_trip.findAll({
+        // where: { rating: 5 }, ini belum bisa
+        attributes: { exclude: ["createdAt", "updatedAt"] },
+      });
+
+      for (let i in packageTrips) {
+        const { name, description, price, rating } = packageTrips[i];
+        let package_tripId = packageTrips[i].id;
+        images = await temp_image.findAll({ where: { package_tripId } });
+        let tourPackages = await tour_packages.findAll({
+          where: { package_tripId },
+          include: [destination],
+        });
+        let data = {
+          name,
+          description,
+          price,
+          rating,
+          images,
+          tourPackages,
+        };
+        result.push(data);
+      }
+
+      res.status(200).json(result);
     } catch (err) {
       res.status(500).json(err);
     }
