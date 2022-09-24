@@ -43,6 +43,9 @@ module.exports = {
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       },
+      is_violation: {
+        type: Sequelize.BOOLEAN,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

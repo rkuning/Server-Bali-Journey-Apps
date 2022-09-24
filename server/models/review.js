@@ -36,12 +36,14 @@ module.exports = (sequelize, DataTypes) => {
       userId: DataTypes.INTEGER,
       destinationId: DataTypes.INTEGER,
       package_tripId: DataTypes.INTEGER,
+      is_violation: DataTypes.BOOLEAN,
     },
     {
       hooks: {
         beforeCreate: (review, options) => {
           review.destinationId = review.destinationId || null;
           review.package_tripId = review.package_tripId || null;
+          review.is_violation = false;
         },
       },
       sequelize,

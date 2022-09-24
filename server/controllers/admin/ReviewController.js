@@ -148,6 +148,18 @@ class ReviewController {
     }
   }
 
+  static async updateViolations(req, res) {
+    try {
+      const { id } = req.params;
+      const { is_violation } = req.body;
+      const result = await review.update({ is_violation }, { where: { id } });
+      result[0] === 1
+        ? res.status(200).json({ message: `Review with id ${id} has been updated` })
+        : res.status(404).json({ msg: "Review not found!" });
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
   static async updateReview(req, res) {
     try {
       const { id } = req.params;

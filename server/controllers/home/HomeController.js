@@ -263,5 +263,44 @@ class HomeController {
       res.status(500).json(err);
     }
   }
+  static async home(req, res) {
+    try {
+      let recPackage = [];
+      let package_trips = await package_trip.findAll({
+        limit: 7,
+        attributes: { exclude: ["createdAt", "updatedAt"] },
+        where: { rating: { [Op.gte]: 4 } },
+        order: [["rating", "DESC"]],
+      });
+      for (let i in package_trips) {
+        let package_tripId = package_trips[i].id;
+        let images = await temp_image.findAll({ attributes: ["id", "package_tripId", "img"], where: { package_tripId } });
+        let destinations = await tour_package.findAll({ where: { package_tripId }, include: [destination] });
+        let data = { ...package_trips[i].dataValues, images, destinations };
+        recPackage.push(data);
+      }
+      let recDest = [];
+      let destinations = await destination.findAll({
+        limit: 7,
+        attributes: { exclude: ["createdAt", "updatedAt"] },
+        include: [category],
+        where: { rating: { [Op.gte]: 4 } },
+        order: [["rating", "DESC"]],
+      });
+
+      for (let i in destinations) {
+        let destinationId = destinations[i].id;
+        let images = await temp_image.findAll({
+          attributes: ["id", "destinationId", "img"],
+          where: { destinationId: destinationId },
+        });
+        let data = { ...destinations[i].dataValues, images };
+        recDest.push(data);
+      }
+      res.status(200).json({ recDest, recPackage });
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
 }
 module.exports = HomeController;

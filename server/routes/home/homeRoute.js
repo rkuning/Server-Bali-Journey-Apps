@@ -1,7 +1,7 @@
 const homeRoute = require("express").Router();
 const { HomeController } = require("../../controllers");
 
-homeRoute.get("/", (req, res) => res.json("homepage"));
+homeRoute.get("/", HomeController.home);
 homeRoute.post("/login", HomeController.login);
 homeRoute.post("/register", HomeController.register);
 homeRoute.get("/category", HomeController.category);
