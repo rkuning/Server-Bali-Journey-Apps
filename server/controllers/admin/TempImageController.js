@@ -38,9 +38,7 @@ class TempImageController {
       const { id } = req.params;
       const result = await temp_image.destroy({ where: { id } });
       if (result !== 0) {
-        res
-          .status(200)
-          .json({ message: `Image with id ${id} has been deleted` });
+        res.status(200).json({ message: `Image with id ${id} has been deleted` });
       } else {
         res.status(404).json({ message: `Image can't be deleted` });
       }
@@ -52,14 +50,9 @@ class TempImageController {
     try {
       const { id } = req.params;
       const { userId, destinationId, package_tripId, reviewId, img } = req.body;
-      const result = await temp_image.update(
-        { userId, destinationId, package_tripId, reviewId, img },
-        { where: { id } }
-      );
+      const result = await temp_image.update({ userId, destinationId, package_tripId, reviewId, img }, { where: { id } });
       if (result[0] !== 0) {
-        res
-          .status(200)
-          .json({ message: `Image with id ${id} has been updated` });
+        res.status(200).json({ message: `Image with id ${id} has been updated` });
       } else {
         res.status(404).json({ message: `Image can't be updated` });
       }

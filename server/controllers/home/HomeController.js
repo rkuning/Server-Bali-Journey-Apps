@@ -1,7 +1,7 @@
 const { user, temp_image, category, destination, package_trip, tour_package, review } = require("../../models");
 const { decryptPass } = require("../../helpers/bcrypt");
 const { tokenGenerator } = require("../../helpers/jsonwebtoken");
-
+const Op = require("sequelize").Op;
 class HomeController {
   static async login(req, res) {
     try {
@@ -148,7 +148,19 @@ class HomeController {
           attributes: ["id", "destinationId", "img"],
           where: { destinationId: dataDestination.id },
         });
-        let data = { ...dataDestination.dataValues, images };
+        let reviews = [];
+        const revDes = await review.findAll({
+          attributes: { exclude: ["createdAt", "updatedAt", "package_tripId"] },
+          include: [user],
+          where: { destinationId: dataDestination.id },
+        });
+        for (let i in revDes) {
+          let reviewId = revDes[i].id;
+          let images = await temp_image.findAll({ attributes: ["id", "reviewId", "img"], where: { reviewId } });
+          let data = { ...revDes[i].dataValues, images };
+          reviews.push(data);
+        }
+        let data = { ...dataDestination.dataValues, images, reviews };
         res.status(200).json(data);
       } else {
         res.status(404).json({ msg: `Not found` });
@@ -183,7 +195,19 @@ class HomeController {
             destinations.push({ ...dataDes[i].dataValues, images });
           }
         }
-        let data = { ...dataPackageTrip.dataValues, images, destinations };
+        let reviews = [];
+        const revPack = await review.findAll({
+          attributes: { exclude: ["createdAt", "updatedAt", "destinationId"] },
+          include: [user],
+          where: { package_tripId: dataPackageTrip.id },
+        });
+        for (let i in revPack) {
+          let reviewId = revPack[i].id;
+          let images = await temp_image.findAll({ attributes: ["id", "reviewId", "img"], where: { reviewId } });
+          let data = { ...revPack[i].dataValues, images };
+          reviews.push(data);
+        }
+        let data = { ...dataPackageTrip.dataValues, images, destinations, reviews };
         res.status(200).json(data);
       } else {
         res.status(404).json({ msg: `Not found!` });
@@ -194,35 +218,22 @@ class HomeController {
   }
   static async recomenDestinations(req, res) {
     try {
-      let images = [];
       let result = [];
-
       let destinations = await destination.findAll({
-        // where: { rating: 5 }, ini belum bisa
+        limit: 7,
         attributes: { exclude: ["createdAt", "updatedAt"] },
         include: [category],
+        where: { rating: { [Op.gte]: 4 } },
+        order: [["rating", "DESC"]],
       });
 
       for (let i in destinations) {
-        const { id, name, categoryId, rating, description, address, open_day, open_time, map_link, category } =
-          destinations[i];
         let destinationId = destinations[i].id;
-        images = await temp_image.findAll({
+        let images = await temp_image.findAll({
+          attributes: ["id", "destinationId", "img"],
           where: { destinationId: destinationId },
         });
-        let data = {
-          id,
-          name,
-          categoryId,
-          rating,
-          description,
-          address,
-          open_day,
-          open_time,
-          map_link,
-          category,
-          images,
-        };
+        let data = { ...destinations[i].dataValues, images };
         result.push(data);
       }
 
@@ -233,33 +244,20 @@ class HomeController {
   }
   static async recomenPackageTrips(req, res) {
     try {
-      let images = [];
       let result = [];
-
-      let packageTrips = await package_trip.findAll({
-        // where: { rating: 5 }, ini belum bisa
+      let package_trips = await package_trip.findAll({
+        limit: 7,
         attributes: { exclude: ["createdAt", "updatedAt"] },
+        where: { rating: { [Op.gte]: 4 } },
+        order: [["rating", "DESC"]],
       });
-
-      for (let i in packageTrips) {
-        const { name, description, price, rating } = packageTrips[i];
-        let package_tripId = packageTrips[i].id;
-        images = await temp_image.findAll({ where: { package_tripId } });
-        let tourPackages = await tour_packages.findAll({
-          where: { package_tripId },
-          include: [destination],
-        });
-        let data = {
-          name,
-          description,
-          price,
-          rating,
-          images,
-          tourPackages,
-        };
+      for (let i in package_trips) {
+        let package_tripId = package_trips[i].id;
+        let images = await temp_image.findAll({ attributes: ["id", "package_tripId", "img"], where: { package_tripId } });
+        let destinations = await tour_package.findAll({ where: { package_tripId }, include: [destination] });
+        let data = { ...package_trips[i].dataValues, images, destinations };
         result.push(data);
       }
-
       res.status(200).json(result);
     } catch (err) {
       res.status(500).json(err);

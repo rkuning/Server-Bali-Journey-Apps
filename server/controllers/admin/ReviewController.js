@@ -1,12 +1,34 @@
 const { review, temp_image, user, destination, package_trip } = require("../../models");
+const Op = require("sequelize").Op;
 
 class ReviewController {
-  static async getReview(req, res) {
+  static async getReviewDestinations(req, res) {
     try {
       let result = [];
       const reviews = await review.findAll({
-        attributes: { exclude: ["createdAt", "updatedAt"] },
-        include: [user, destination, package_trip],
+        attributes: { exclude: ["createdAt", "updatedAt", "package_tripId"] },
+        include: [user, destination],
+        where: { destinationId: { [Op.not]: null } },
+      });
+      for (let i in reviews) {
+        let reviewId = reviews[i].id;
+        let images = await temp_image.findAll({ attributes: ["id", "reviewId", "img"], where: { reviewId } });
+        let data = { ...reviews[i].dataValues, images };
+        result.push(data);
+      }
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+
+  static async getReviewPackages(req, res) {
+    try {
+      let result = [];
+      const reviews = await review.findAll({
+        attributes: { exclude: ["createdAt", "updatedAt", "destinationId"] },
+        include: [user, package_trip],
+        where: { package_tripId: { [Op.not]: null } },
       });
       for (let i in reviews) {
         let reviewId = reviews[i].id;
@@ -23,8 +45,23 @@ class ReviewController {
   static async getReviewId(req, res) {
     try {
       const { id } = req.params;
-      const result = await review.findOne({ where: { id } });
-      res.status(200).json(result);
+      const dataReview = await review.findOne({ where: { id } });
+      if (dataReview) {
+        const { comment, rating, userId, destinationId, package_tripId } = dataReview;
+        let images = await temp_image.findAll({
+          attributes: ["id", "reviewId", "img"],
+          where: { reviewId: dataReview.id },
+        });
+        if (destinationId !== null) {
+          let data = { id, comment, rating, userId, destinationId, images };
+          res.status(200).json(data);
+        } else {
+          let data = { id, comment, rating, userId, package_tripId, images };
+          res.status(200).json(data);
+        }
+      } else {
+        res.status(404).json({ msg: "Review not found!" });
+      }
     } catch (err) {
       res.status(500).json(err);
     }
@@ -84,7 +121,10 @@ class ReviewController {
           const jmlRating = await review.findAll({ where: { destinationId: dataReview.destinationId } });
           let hasil = 0;
           jmlRating.forEach((rat) => (hasil += rat.rating));
-          let newRating = hasil / jmlRating.length;
+          let newRating = 0;
+          if (jmlRating.length > 0) {
+            newRating = hasil / jmlRating.length;
+          }
           await destination.update({ rating: +newRating }, { where: { id: dataReview.destinationId } });
           res.status(200).json({ message: `Review with id ${id} has been deleted` });
         }
@@ -93,7 +133,10 @@ class ReviewController {
           const jmlRating = await review.findAll({ where: { package_tripId: dataReview.package_tripId } });
           let hasil = 0;
           jmlRating.forEach((rat) => (hasil += rat.rating));
-          let newRating = hasil / jmlRating.length;
+          let newRating = 0;
+          if (jmlRating.length > 0) {
+            newRating = hasil / jmlRating.length;
+          }
           await package_trip.update({ rating: newRating }, { where: { id: dataReview.package_tripId } });
           res.status(200).json({ message: `Review with id ${id} has been deleted` });
         }
@@ -109,11 +152,30 @@ class ReviewController {
     try {
       const { id } = req.params;
       const { comment, rating, userId, destinationId, package_tripId } = req.body;
-      const result = await review.update({ comment, rating, userId, destinationId, package_tripId }, { where: { id } });
-      if (result[0] !== 0) {
+      const dataReview = await review.findOne({ where: { id } });
+      if (dataReview) {
+        await review.update({ comment, rating, userId, destinationId, package_tripId }, { where: { id } });
+        if (typeof destinationId !== "undefined") {
+          const jmlRating = await review.findAll({ where: { destinationId } });
+          let hasil = 0;
+          jmlRating.forEach((rat) => {
+            hasil += rat.rating;
+          });
+          let newRating = hasil / jmlRating.length;
+          await destination.update({ rating: newRating }, { where: { id: destinationId } });
+        }
+        if (typeof package_tripId !== "undefined") {
+          const jmlRating = await review.findAll({ where: { package_tripId } });
+          let hasil = 0;
+          jmlRating.forEach((rat) => {
+            hasil += rat.rating;
+          });
+          let newRating = hasil / jmlRating.length;
+          await package_trip.update({ rating: newRating }, { where: { id: package_tripId } });
+        }
         res.status(200).json({ message: `Review with id ${id} has been updated` });
       } else {
-        res.status(404).json({ message: `Review can't be updated` });
+        res.status(404).json({ msg: "Review not found!" });
       }
     } catch (err) {
       res.status(500).json(err);
