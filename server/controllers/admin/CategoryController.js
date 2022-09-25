@@ -49,8 +49,9 @@ class CategoryController {
     try {
       const { id } = req.params;
       const { name } = req.body;
-      const valName = await category.findOne({ where: { id } });
-      if (valName && valName.name !== name) {
+      const categoryOld = await category.findOne({ where: { id } });
+      const valName = await category.findOne({ where: { name } });
+      if (valName && categoryOld.name !== name) {
         res.status(404).json({ message: `Category already exist!` });
       } else {
         const result = await category.update({ name }, { where: { id } });
