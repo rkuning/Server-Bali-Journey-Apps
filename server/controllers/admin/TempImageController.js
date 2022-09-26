@@ -1,60 +1,78 @@
-const { temp_image } = require("../../models");
+const { temp_image, destination, package_trip } = require("../../models");
 
 class TempImageController {
-  static async getTempImage(req, res) {
+  static async getImagesByDest(req, res) {
     try {
-      let result = await temp_image.findAll();
-      res.status(200).json(result);
-    } catch (err) {
-      res.status(500).json(err);
-    }
-  }
-  static async getTempImageId(req, res) {
-    try {
-      const { id } = req.params;
-      const result = await temp_image.findOne({ where: { id } });
-      res.status(200).json(result);
-    } catch (err) {
-      res.status(500).json(err);
-    }
-  }
-  static async addTempImage(req, res) {
-    try {
-      const { userId, destinationId, package_tripId, reviewId, img } = req.body;
-      let result = await temp_image.create({
-        userId,
-        destinationId,
-        package_tripId,
-        reviewId,
-        img,
-      });
-      res.status(201).json(result);
-    } catch (err) {
-      res.status(500).json(err);
-    }
-  }
-  static async deleteTempImage(req, res) {
-    try {
-      const { id } = req.params;
-      const result = await temp_image.destroy({ where: { id } });
-      if (result !== 0) {
-        res.status(200).json({ message: `Image with id ${id} has been deleted` });
+      const id = +req.params.id;
+      const valDest = await destination.findOne({ where: { id } });
+      if (valDest) {
+        let result = await temp_image.findAll({ attributes: ["id", "destinationId", "img"], where: { destinationId: id } });
+        res.status(200).json(result);
       } else {
-        res.status(404).json({ message: `Image can't be deleted` });
+        res.status(404).json({ msg: "Destination not found!" });
       }
     } catch (err) {
       res.status(500).json(err);
     }
   }
-  static async updateTempImage(req, res) {
+  static async getImagesByPack(req, res) {
+    try {
+      const id = +req.params.id;
+      const valDest = await package_trip.findOne({ where: { id } });
+      if (valDest) {
+        let result = await temp_image.findAll({
+          attributes: ["id", "package_tripId", "img"],
+          where: { package_tripId: id },
+        });
+        res.status(200).json(result);
+      } else {
+        res.status(404).json({ msg: "Package trip not found!" });
+      }
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+
+  static async addImgDest(req, res) {
+    try {
+      const id = +req.params.id;
+      const img = req.file.path;
+      const valDest = await destination.findOne({ where: { id } });
+      if (valDest) {
+        let result = await temp_image.create({ destinationId: id, img });
+        res.status(201).json(result);
+      } else {
+        res.status(404).json({ msg: "Destination not found!" });
+      }
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+
+  static async addImgPack(req, res) {
+    try {
+      const id = +req.params.id;
+      const img = req.file.path;
+      const valPack = await package_trip.findOne({ where: { id } });
+      if (valPack) {
+        let result = await temp_image.create({ package_tripId: id, img });
+        res.status(201).json(result);
+      } else {
+        res.status(404).json({ msg: "Package trip not found!" });
+      }
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+
+  static async deleteImage(req, res) {
     try {
       const { id } = req.params;
-      const { userId, destinationId, package_tripId, reviewId, img } = req.body;
-      const result = await temp_image.update({ userId, destinationId, package_tripId, reviewId, img }, { where: { id } });
-      if (result[0] !== 0) {
-        res.status(200).json({ message: `Image with id ${id} has been updated` });
+      const result = await temp_image.destroy({ where: { id } });
+      if (result !== 0) {
+        res.status(200).json({ msg: `Image with id ${id} has been deleted` });
       } else {
-        res.status(404).json({ message: `Image can't be updated` });
+        res.status(404).json({ msg: `Image not found!` });
       }
     } catch (err) {
       res.status(500).json(err);

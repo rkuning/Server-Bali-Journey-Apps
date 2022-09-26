@@ -302,5 +302,34 @@ class HomeController {
       res.status(500).json(err);
     }
   }
+  static async destByCat(req, res) {
+    try {
+      let images = [];
+      let result = [];
+      let categoryId = +req.params.id;
+      let destinations = await destination.findAll({
+        attributes: { exclude: ["createdAt", "updatedAt"] },
+        include: [category],
+        where: { categoryId },
+      });
+
+      for (let i in destinations) {
+        let destinationId = destinations[i].id;
+        images = await temp_image.findAll({
+          attributes: ["id", "destinationId", "img"],
+          where: { destinationId: destinationId },
+        });
+        let data = {
+          ...destinations[i].dataValues,
+          images,
+        };
+        result.push(data);
+      }
+
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
 }
 module.exports = HomeController;
