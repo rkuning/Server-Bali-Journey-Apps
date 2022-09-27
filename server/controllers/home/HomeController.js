@@ -220,7 +220,6 @@ class HomeController {
     try {
       let result = [];
       let destinations = await destination.findAll({
-        limit: 7,
         attributes: { exclude: ["createdAt", "updatedAt"] },
         include: [category],
         where: { rating: { [Op.gte]: 4 } },
@@ -246,7 +245,6 @@ class HomeController {
     try {
       let result = [];
       let package_trips = await package_trip.findAll({
-        limit: 7,
         attributes: { exclude: ["createdAt", "updatedAt"] },
         where: { rating: { [Op.gte]: 4 } },
         order: [["rating", "DESC"]],

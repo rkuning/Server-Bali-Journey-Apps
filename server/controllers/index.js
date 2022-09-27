@@ -7,6 +7,7 @@ const TempImageController = require("./admin/TempImageController");
 const PackageTripController = require("./admin/PackageTripController");
 const UserProfileController = require("./users/UserProfileController");
 const UserDetailController = require("./users/UserDetailController");
+const UserWishlistController = require("./users/UserWishlistController");
 
 module.exports = {
   HomeController,
@@ -18,4 +19,5 @@ module.exports = {
   PackageTripController,
   UserProfileController,
   UserDetailController,
+  UserWishlistController,
 };

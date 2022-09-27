@@ -1,4 +1,4 @@
-const { temp_image, destination, package_trip } = require("../../models");
+const { temp_image, destination, package_trip, review } = require("../../models");
 
 class TempImageController {
   static async getImagesByDest(req, res) {
@@ -59,6 +59,40 @@ class TempImageController {
         res.status(201).json(result);
       } else {
         res.status(404).json({ msg: "Package trip not found!" });
+      }
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+
+  static async addImgRevDest(req, res) {
+    try {
+      const id = +req.params.id;
+      const img = req.file.path;
+      const userId = req.user.id;
+      const valRev = await review.findOne({ where: { id, userId } });
+      if (valRev && valRev.package_tripId === null) {
+        let result = await temp_image.create({ reviewId: id, img });
+        res.status(201).json(result);
+      } else {
+        res.status(404).json({ msg: "Review not found!" });
+      }
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+
+  static async addImgRevPack(req, res) {
+    try {
+      const id = +req.params.id;
+      const img = req.file.path;
+      const userId = req.user.id;
+      const valPack = await review.findOne({ where: { id, userId } });
+      if (valPack && valPack.destinationId === null) {
+        let result = await temp_image.create({ reviewId: id, img });
+        res.status(201).json(result);
+      } else {
+        res.status(404).json({ msg: "Review not found!" });
       }
     } catch (err) {
       res.status(500).json(err);
