@@ -7,13 +7,20 @@ class ReviewController {
       let result = [];
       const reviews = await review.findAll({
         attributes: { exclude: ["createdAt", "updatedAt", "package_tripId"] },
-        include: [user, destination],
+        include: [destination],
         where: { destinationId: { [Op.not]: null } },
       });
       for (let i in reviews) {
         let reviewId = reviews[i].id;
+        let userId = reviews[i].userId;
+        let dataUser = await user.findOne({
+          attributes: { exclude: ["createdAt", "updatedAt", "password"] },
+          where: { id: userId },
+        });
+        let userImages = await temp_image.findOne({ attributes: ["id", "userId", "img"], where: { userId } });
+        let users = { ...dataUser.dataValues, images: userImages.img };
         let images = await temp_image.findAll({ attributes: ["id", "reviewId", "img"], where: { reviewId } });
-        let data = { ...reviews[i].dataValues, images };
+        let data = { ...reviews[i].dataValues, user: users, images };
         result.push(data);
       }
       res.status(200).json(result);
@@ -27,13 +34,20 @@ class ReviewController {
       let result = [];
       const reviews = await review.findAll({
         attributes: { exclude: ["createdAt", "updatedAt", "destinationId"] },
-        include: [user, package_trip],
+        include: [package_trip],
         where: { package_tripId: { [Op.not]: null } },
       });
       for (let i in reviews) {
         let reviewId = reviews[i].id;
+        let userId = reviews[i].userId;
+        let dataUser = await user.findOne({
+          attributes: { exclude: ["createdAt", "updatedAt", "password"] },
+          where: { id: userId },
+        });
+        let userImages = await temp_image.findOne({ attributes: ["id", "userId", "img"], where: { userId } });
+        let users = { ...dataUser.dataValues, images: userImages.img };
         let images = await temp_image.findAll({ attributes: ["id", "reviewId", "img"], where: { reviewId } });
-        let data = { ...reviews[i].dataValues, images };
+        let data = { ...reviews[i].dataValues, user: users, images };
         result.push(data);
       }
       res.status(200).json(result);
@@ -52,11 +66,25 @@ class ReviewController {
           attributes: ["id", "reviewId", "img"],
           where: { reviewId: dataReview.id },
         });
+        let dataUser = await user.findOne({
+          attributes: { exclude: ["createdAt", "updatedAt", "password"] },
+          where: { id: userId },
+        });
+        let dataDest = await destination.findOne({
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+          where: { id: destinationId },
+        });
+        let dataPack = await destination.findOne({
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+          where: { id: package_tripId },
+        });
+        let userImages = await temp_image.findOne({ attributes: ["id", "userId", "img"], where: { userId } });
+        let users = { ...dataUser.dataValues, images: userImages.img };
         if (destinationId !== null) {
-          let data = { id, comment, rating, userId, destinationId, images };
+          let data = { id, comment, rating, userId, destinationId, dest_name: dataDest.name, user: users, images };
           res.status(200).json(data);
         } else {
-          let data = { id, comment, rating, userId, package_tripId, images };
+          let data = { id, comment, rating, userId, package_tripId, package_name: dataPack.name, user: users, images };
           res.status(200).json(data);
         }
       } else {

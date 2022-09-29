@@ -31,6 +31,11 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       });
+      package_trip.hasMany(models.cart_item, {
+        foreignKey: "package_tripId",
+        onDelete: "SET NULL",
+        onUpdate: "CASCADE",
+      });
     }
   }
   package_trip.init(

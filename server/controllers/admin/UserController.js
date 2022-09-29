@@ -3,7 +3,22 @@ const { user, temp_image } = require("../../models");
 class UserController {
   static async getUser(req, res) {
     try {
-      let users = await user.findAll({ attributes: { exclude: ["createdAt", "updatedAt"] }, where: { status: "active" } });
+      let users = await user.findAll({ attributes: { exclude: ["createdAt", "updatedAt"] } });
+      let data = [];
+      for (let i in users) {
+        let image = await temp_image.findOne({ where: { userId: users[i].id } });
+        data.push({ ...users[i].dataValues, img: image.img });
+      }
+      res.status(200).json(data);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+
+  static async getUserByStatus(req, res) {
+    try {
+      const { status } = req.query;
+      let users = await user.findAll({ attributes: { exclude: ["createdAt", "updatedAt"] }, where: { status } });
       let data = [];
       for (let i in users) {
         let image = await temp_image.findOne({ where: { userId: users[i].id } });
