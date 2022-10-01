@@ -15,7 +15,11 @@ class HomeController {
           let accessToken = tokenGenerator(emailFound);
           switch (emailFound.status) {
             case "active":
-              res.status(200).json({ accessToken });
+              if (emailFound.level === "admin") {
+                res.status(200).json({ accessToken, level: emailFound.level });
+              } else {
+                res.status(200).json({ accessToken });
+              }
               break;
             case "inactive":
               res.status(307).json({ msg: "Cannot reach this account!" });

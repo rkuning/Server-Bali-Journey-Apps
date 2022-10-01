@@ -8,6 +8,7 @@ const UserController = require("./admin/UserController");
 const ReviewController = require("./admin/ReviewController");
 const TempImageController = require("./admin/TempImageController");
 const PackageTripController = require("./admin/PackageTripController");
+const ReportController = require("./admin/ReportController");
 
 // ? Controller User
 const UserProfileController = require("./users/UserProfileController");
@@ -21,6 +22,7 @@ module.exports = {
   DestinationController,
   UserController,
   ReviewController,
+  ReportController,
   TempImageController,
   PackageTripController,
   UserProfileController,
