@@ -376,7 +376,8 @@ class UserPaymentController {
     try {
       // TODO tambah validasi
       const id = +req.params.id;
-      const { payment_code, total } = await payment.findOne({ where: { id } });
+      const userId = +req.user.id;
+      const { payment_code, total } = await payment.findOne({ where: { id, userId } });
       const { payment_type, bank } = req.body;
 
       const payload = {
@@ -389,11 +390,17 @@ class UserPaymentController {
           bank,
         },
       };
-      const resPayment = await core.charge(payload);
-      const status = resPayment.transaction_status;
-      const responseMidtrans = JSON.stringify(resPayment);
-      const result = await payment.update({ status, responseMidtrans }, { where: { id } });
-      result[0] === 1 ? res.status(200).json(`Payment Updated!`) : res.status(404).json(`Payment not updated!`);
+
+      const valPayment = await payment.findOne({ where: { id, userId } });
+      if (valPayment.status === "unpaid") {
+        const resPayment = await core.charge(payload);
+        const status = resPayment.transaction_status;
+        const responseMidtrans = JSON.stringify(resPayment);
+        const result = await payment.update({ status, responseMidtrans }, { where: { id, userId } });
+        result[0] === 1 ? res.status(200).json(`Payment Updated!`) : res.status(404).json(`Payment not updated!`);
+      } else {
+        res.status(404).json({ msg: "Data payment is not found!" });
+      }
     } catch (error) {
       res.status(500).json(error);
     }
@@ -417,12 +424,34 @@ class UserPaymentController {
   static async getStatusMidtrans(req, res) {
     try {
       const code = req.params.code;
+      const userId = +req.user.id;
       const result = await core.transaction.status(code);
       let status = "";
       result.transaction_status === "settlement" ? (status = "paid") : (status = result.transaction_status);
       const responseMidtrans = JSON.stringify(result);
-      await payment.update({ status, responseMidtrans }, { where: { payment_code: code } });
+      await payment.update({ status, responseMidtrans }, { where: { payment_code: code, userId } });
 
+      if (status === "paid") {
+        res.status(200).json(result);
+      } else {
+        res.status(200).json({ msg: "Please complete your transaction." });
+      }
+    } catch (error) {
+      res.status(500).json(error);
+    }
+  }
+
+  static async getDetailOrder(req, res) {
+    try {
+      const id = +req.params.id;
+      const userId = +req.user.id;
+      let result = {};
+      const dataPayment = await payment.findOne({ where: { id, userId, status: "pending" } });
+      const { payment_code, total, status } = dataPayment;
+      const responseMidtrans = JSON.parse(dataPayment.responseMidtrans);
+      const { va_numbers, payment_type } = responseMidtrans;
+      const { bank, va_number } = va_numbers[0];
+      result = { id, userId, payment_code, total, payment_type, bank, va_number, status };
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json(error);
