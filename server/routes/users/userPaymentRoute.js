@@ -12,5 +12,6 @@ userPaymentRoute.get("/paids", UserPaymentController.getPaids);
 
 // ? route ke midtrans
 userPaymentRoute.post("/pay/:id", UserPaymentController.payMidtrans);
+userPaymentRoute.get("/pay/:code", UserPaymentController.getStatusMidtrans);
 
 module.exports = userPaymentRoute;
