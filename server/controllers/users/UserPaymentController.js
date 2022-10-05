@@ -3,8 +3,8 @@ const midtransClient = require("midtrans-client");
 
 let core = new midtransClient.CoreApi({
   isProduction: false,
-  serverKey: "SB-Mid-client-gG4rRBlMKhh5uKXA",
-  clientKey: "SB-Mid-server-wLlwnHDP89wC2KHUgoc5mdGT",
+  clientKey: "SB-Mid-client-gG4rRBlMKhh5uKXA",
+  serverKey: "SB-Mid-server-wLlwnHDP89wC2KHUgoc5mdGT",
 });
 
 class UserPaymentController {
@@ -374,17 +374,24 @@ class UserPaymentController {
     try {
       const id = +req.params.id;
       const userId = req.user.id;
-      const dataPayment = req.body;
+      // const { payment_type, gross_amount, bank } = req.body;
 
-      const resPayment = await core.charge(dataPayment);
-
+      // const payload = {
+      //   payment_type,
+      //   transaction_details: {
+      //     gross_amount: +gross_amount,
+      //     order_id,
+      //   },
+      //   bank_transfer: {
+      //     bank,
+      //   },
+      // };
+      const resPayment = await core.charge(req.body);
       const status = resPayment.transaction_status;
       const midtransId = resPayment.order_id;
       const responseMidtrans = JSON.stringify(resPayment);
-
       const result = await payment.update({ status, midtransId, responseMidtrans }, { where: { id } });
-
-      res.json(result);
+      res.status(200).json(resPayment);
     } catch (error) {
       res.status(500).json(error);
     }
