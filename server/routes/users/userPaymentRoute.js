@@ -10,4 +10,7 @@ userPaymentRoute.delete("/unpaids/:id", UserPaymentController.deletePayments);
 userPaymentRoute.put("/unpaids/:id", UserPaymentController.successPayments);
 userPaymentRoute.get("/paids", UserPaymentController.getPaids);
 
+// ? route ke midtrans
+userPaymentRoute.post("/pay/:id", UserPaymentController.payMidtrans);
+
 module.exports = userPaymentRoute;

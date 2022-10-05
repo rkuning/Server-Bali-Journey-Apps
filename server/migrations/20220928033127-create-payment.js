@@ -28,6 +28,12 @@ module.exports = {
       status: {
         type: Sequelize.STRING,
       },
+      midtransId: {
+        type: Sequelize.STRING,
+      },
+      responseMidtrans: {
+        type: Sequelize.TEXT,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

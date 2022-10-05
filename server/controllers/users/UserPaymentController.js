@@ -1,4 +1,11 @@
-const { temp_image, package_trip, payment, cart_item } = require("../../models");
+const { temp_image, package_trip, payment, cart_item, user } = require("../../models");
+const midtransClient = require("midtrans-client");
+
+let core = new midtransClient.CoreApi({
+  isProduction: false,
+  serverKey: "SB-Mid-client-gG4rRBlMKhh5uKXA",
+  clientKey: "SB-Mid-server-wLlwnHDP89wC2KHUgoc5mdGT",
+});
 
 class UserPaymentController {
   static async getCarts(req, res) {
@@ -38,6 +45,8 @@ class UserPaymentController {
       res.status(500).json(err);
     }
   }
+
+  // fix today
 
   static async addCarts(req, res) {
     try {
@@ -131,7 +140,6 @@ class UserPaymentController {
         const validasiCart = await cart_item.findAll({ where: { id, paymentId: valPaym.id } });
         let isValidDate = true;
         let today = new Date();
-
         for (let j in validasiCart) {
           const { date } = validasiCart[j];
           let varDate = new Date(date);
@@ -359,6 +367,26 @@ class UserPaymentController {
       }
     } catch (err) {
       res.status(500).json(err);
+    }
+  }
+
+  static async payMidtrans(req, res) {
+    try {
+      const id = +req.params.id;
+      const userId = req.user.id;
+      const dataPayment = req.body;
+
+      const resPayment = await core.charge(dataPayment);
+
+      const status = resPayment.transaction_status;
+      const midtransId = resPayment.order_id;
+      const responseMidtrans = JSON.stringify(resPayment);
+
+      const result = await payment.update({ status, midtransId, responseMidtrans }, { where: { id } });
+
+      res.json(result);
+    } catch (error) {
+      res.status(500).json(error);
     }
   }
 }
