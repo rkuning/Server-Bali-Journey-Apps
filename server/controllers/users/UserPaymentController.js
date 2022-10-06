@@ -1,6 +1,6 @@
 const { temp_image, package_trip, payment, cart_item, user } = require("../../models");
 const midtransClient = require("midtrans-client");
-const Op = require("Sequelize").Op;
+const Op = require("sequelize").Op;
 
 let core = new midtransClient.CoreApi({
   isProduction: false,
